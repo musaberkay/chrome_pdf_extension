@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "PDF Tools",
+  "version": "1.0.0",
+  "description": "Merge PDFs, convert to Word, and more — all locally in your browser.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PDF Tools"
+  }
+}

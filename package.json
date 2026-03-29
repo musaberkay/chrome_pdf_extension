@@ -1,0 +1,15 @@
+{
+  "name": "pdf-merger-extension",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/copy-worker.js && esbuild src/popup.js --bundle --outfile=bundle.js --format=iife --platform=browser"
+  },
+  "dependencies": {
+    "docx": "^9.6.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.5.207"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}
