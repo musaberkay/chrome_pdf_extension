@@ -1,0 +1,9 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Word document background -->
+  <rect x="10" y="10" width="28" height="28" rx="3" fill="#2b579a"/>
+  <!-- W letterform -->
+  <path d="M18 16h4l3 10 3-10h4v16h-3V22l-3 9h-2l-3-9v10h-3V16z" fill="#fff"/>
+  <!-- Folded corner badge -->
+  <circle cx="36" cy="14" r="4" fill="#fff" opacity="0.9"/>
+  <path d="M34 14h4v1h-4v-1z" fill="#2b579a"/>
+</svg>

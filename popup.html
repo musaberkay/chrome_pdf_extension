@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PDF Tools</title>
-    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="assets/css/popup.css" />
   </head>
   <body>
     <main class="app">
@@ -20,12 +20,7 @@
         <div class="tool-grid" role="navigation" aria-label="PDF tools">
           <button type="button" class="tool-card" data-tool="merge">
             <span class="tool-card__icon tool-card__icon--merge" aria-hidden="true">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="14" width="20" height="22" rx="2" fill="#e53935" opacity="0.9" />
-                <rect x="18" y="10" width="20" height="22" rx="2" fill="#c62828" />
-                <path d="M26 22h8M30 18v8" stroke="#fff" stroke-width="2" stroke-linecap="round" />
-                <path d="M14 24h6M17 21v6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
-              </svg>
+              <img src="assets/images/merge.svg" width="48" height="48" alt="" />
             </span>
             <span class="tool-card__title">Merge PDF</span>
             <span class="tool-card__desc"
@@ -35,12 +30,7 @@
 
           <button type="button" class="tool-card" data-tool="word">
             <span class="tool-card__icon tool-card__icon--word" aria-hidden="true">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="10" y="10" width="28" height="28" rx="3" fill="#2b579a" />
-                <path d="M18 16h4l3 10 3-10h4v16h-3V22l-3 9h-2l-3-9v10h-3V16z" fill="#fff" />
-                <circle cx="36" cy="14" r="4" fill="#fff" opacity="0.9" />
-                <path d="M34 14h4v1h-4v-1z" fill="#2b579a" />
-              </svg>
+              <img src="assets/images/pdf-to-word.svg" width="48" height="48" alt="" />
             </span>
             <span class="tool-card__title">PDF to Word</span>
             <span class="tool-card__desc"
@@ -54,6 +44,18 @@
         <button type="button" class="tool-back" id="backBtn">← All tools</button>
         <h2 class="workspace-title" id="workspaceTitle">Merge PDF</h2>
         <p class="workspace-desc" id="workspaceDesc"></p>
+
+        <div id="conversionSettings" class="conversion-settings" hidden>
+          <p class="conversion-settings__title">Better quality (optional)</p>
+          <label class="conversion-settings__label">
+            ConvertAPI key <span class="conversion-settings__hint">— free, no install · <strong>convertapi.com</strong></span>
+            <input type="password" id="convertApiKey" placeholder="Paste your secret key" class="conversion-settings__input" />
+          </label>
+          <label class="conversion-settings__label">
+            Local server URL <span class="conversion-settings__hint">— run <code>local-server.py</code> or Stirling PDF</span>
+            <input type="url" id="stirlingUrl" placeholder="http://localhost:8765" class="conversion-settings__input" />
+          </label>
+        </div>
 
         <div class="drop-zone" id="dropZone">
           <label class="drop-zone__label">
@@ -84,7 +86,7 @@
         <p id="status" class="status" role="status"></p>
       </section>
     </main>
-    <script src="open-tab.js"></script>
+    <script src="src/open-tab.js"></script>
     <script src="bundle.js"></script>
   </body>
 </html>

@@ -3,8 +3,17 @@
   "name": "PDF Tools",
   "version": "1.0.0",
   "description": "Merge PDFs, convert to Word, and more — all locally in your browser.",
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://v2.convertapi.com/*"
+  ],
+  "icons": {
+    "128": "assets/icons/icon.svg"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "PDF Tools"
+    "default_title": "PDF Tools",
+    "default_icon": "assets/icons/icon.svg"
   }
 }

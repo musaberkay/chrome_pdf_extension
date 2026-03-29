@@ -381,3 +381,63 @@ body.tab-view {
 .status--ok {
   color: #2e7d32;
 }
+
+/* Conversion quality settings */
+
+.conversion-settings {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #f0f7ff;
+  border: 1px solid #90caf9;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conversion-settings__title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1565c0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.conversion-settings__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #37474f;
+}
+
+.conversion-settings__hint {
+  font-weight: 400;
+  color: #5c6370;
+}
+
+.conversion-settings__hint code {
+  font-size: 10px;
+  background: #e8f4fd;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #0d47a1;
+}
+
+.conversion-settings__input {
+  padding: 6px 8px;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+}
+
+.conversion-settings__input:focus {
+  border-color: #1565c0;
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.15);
+}

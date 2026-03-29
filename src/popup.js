@@ -1,5 +1,7 @@
-import { PDFDocument } from "pdf-lib";
-import { configurePdfWorker, convertPdfsToDocx } from "./pdf-to-word.js";
+import { configurePdfWorker, convertPdfsToDocx } from "./features/pdf-to-word/pdf-to-word.js";
+import { convertViaStirlingPdf } from "./features/pdf-to-word/stirling-pdf.js";
+import { convertViaConvertApi } from "./features/pdf-to-word/convertapi.js";
+import { mergePdfs } from "./features/merge/merge.js";
 
 configurePdfWorker();
 
@@ -16,6 +18,9 @@ const viewWorkspace = document.getElementById("viewWorkspace");
 const backBtn = document.getElementById("backBtn");
 const workspaceTitle = document.getElementById("workspaceTitle");
 const workspaceDesc = document.getElementById("workspaceDesc");
+const conversionSettings = document.getElementById("conversionSettings");
+const stirlingUrlInput = document.getElementById("stirlingUrl");
+const convertApiKeyInput = document.getElementById("convertApiKey");
 
 const WORKSPACE = {
   merge: {
@@ -34,7 +39,29 @@ let files = [];
 /** @type {number | null} */
 let dragSourceIndex = null;
 
-function formatKb(bytes) {
+// --- Stirling PDF settings ---
+
+if (stirlingUrlInput) {
+  stirlingUrlInput.value = localStorage.getItem("stirlingPdfUrl") || "";
+  stirlingUrlInput.addEventListener("input", () => {
+    const val = stirlingUrlInput.value.trim();
+    if (val) localStorage.setItem("stirlingPdfUrl", val);
+    else localStorage.removeItem("stirlingPdfUrl");
+  });
+}
+
+if (convertApiKeyInput) {
+  convertApiKeyInput.value = localStorage.getItem("convertApiKey") || "";
+  convertApiKeyInput.addEventListener("input", () => {
+    const val = convertApiKeyInput.value.trim();
+    if (val) localStorage.setItem("convertApiKey", val);
+    else localStorage.removeItem("convertApiKey");
+  });
+}
+
+// --- Helpers ---
+
+function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
@@ -42,6 +69,15 @@ function formatKb(bytes) {
 function setStatus(text, ok = false) {
   statusEl.textContent = text;
   statusEl.classList.toggle("status--ok", ok);
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function updateButtons() {
@@ -60,6 +96,8 @@ function clearDropHighlights() {
 function hasFilePayload(dataTransfer) {
   return dataTransfer?.types?.includes?.("Files") === true;
 }
+
+// --- File management ---
 
 /**
  * @param {File[]} picked
@@ -103,7 +141,7 @@ function renderList() {
 
     const meta = document.createElement("span");
     meta.className = "file-item__meta";
-    meta.textContent = formatKb(file.size);
+    meta.textContent = formatFileSize(file.size);
 
     li.append(grip, nameEl, meta);
 
@@ -149,6 +187,8 @@ function renderList() {
   updateButtons();
 }
 
+// --- Drop zone ---
+
 fileInput.addEventListener("change", () => {
   addPdfFiles(Array.from(fileInput.files || []));
   fileInput.value = "";
@@ -182,6 +222,8 @@ dropZone.addEventListener("drop", (e) => {
   addPdfFiles(Array.from(list));
 });
 
+// --- Actions ---
+
 clearBtn.addEventListener("click", () => {
   files = [];
   setStatus("");
@@ -195,26 +237,11 @@ mergeBtn.addEventListener("click", async () => {
   wordBtn.disabled = true;
   clearBtn.disabled = true;
   try {
-    const merged = await PDFDocument.create();
-    for (const file of files) {
-      const bytes = await file.arrayBuffer();
-      const doc = await PDFDocument.load(bytes, { ignoreEncryption: false });
-      const indices = doc.getPageIndices();
-      const pages = await merged.copyPages(doc, indices);
-      pages.forEach((p) => merged.addPage(p));
-    }
-    const out = await merged.save();
-    const blob = new Blob([out], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "merged.pdf";
-    a.click();
-    URL.revokeObjectURL(url);
+    const blob = await mergePdfs(files);
+    triggerDownload(blob, "merged.pdf");
     setStatus("Done. Check your downloads.", true);
   } catch (e) {
-    const msg =
-      e instanceof Error ? e.message : "Merge failed.";
+    const msg = e instanceof Error ? e.message : "Merge failed.";
     setStatus(
       msg.includes("encrypt")
         ? "A PDF is password-protected or encrypted."
@@ -231,14 +258,40 @@ wordBtn.addEventListener("click", async () => {
   mergeBtn.disabled = true;
   wordBtn.disabled = true;
   clearBtn.disabled = true;
+
   try {
+    const stirlingUrl = localStorage.getItem("stirlingPdfUrl");
+    const convertApiKey = localStorage.getItem("convertApiKey");
+
+    // Priority: local server → ConvertAPI → built-in
+    if (stirlingUrl) {
+      try {
+        const results = await convertViaStirlingPdf(files, stirlingUrl);
+        for (const { blob, name } of results) triggerDownload(blob, name);
+        setStatus(results.length > 1 ? `${results.length} Word documents downloaded.` : "Word document downloaded.", true);
+        return;
+      } catch {
+        setStatus("Local server unreachable. Trying ConvertAPI…");
+        await new Promise((r) => setTimeout(r, 900));
+      }
+    }
+
+    if (convertApiKey) {
+      try {
+        const results = await convertViaConvertApi(files, convertApiKey);
+        for (const { blob, name } of results) triggerDownload(blob, name);
+        setStatus(results.length > 1 ? `${results.length} Word documents downloaded.` : "Word document downloaded.", true);
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "ConvertAPI failed.";
+        setStatus(`${msg} Falling back to built-in…`);
+        await new Promise((r) => setTimeout(r, 900));
+      }
+    }
+
+    // Built-in fallback
     const blob = await convertPdfsToDocx(files);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "converted.docx";
-    a.click();
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, "converted.docx");
     setStatus("Word document downloaded. Text-only; layout may differ.", true);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Conversion failed.";
@@ -251,6 +304,8 @@ wordBtn.addEventListener("click", async () => {
     updateButtons();
   }
 });
+
+// --- Views ---
 
 function showHome() {
   if (!viewHome || !viewWorkspace) return;
@@ -269,6 +324,7 @@ function showWorkspace(tool) {
   workspaceDesc.textContent = cfg.desc;
   mergeBtn.hidden = tool !== "merge";
   wordBtn.hidden = tool !== "word";
+  if (conversionSettings) conversionSettings.hidden = tool !== "word";
   updateButtons();
 }
 
